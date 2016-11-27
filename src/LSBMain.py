@@ -15,9 +15,20 @@ def mergeData(image,data,numberBits):
 		image[index] = tuple(tempPixel) #right the data
 	return image
 
+def getData(image,numberBits):
+	allData = [0]
+	for index in range(0,len(image)-1):
+		tempPixel = list(image[index]) 
+		allData.append(tempPixel[0] & ~(0xFF << numberBits))
+		allData.append(tempPixel[1] & ~(0xFF << numberBits))
+		allData.append(tempPixel[2] & ~(0xFF << numberBits))
+	return allData
+
 imageMat = Image.open("./../samples/sample1.png") #read the image, 8 bit per pixel
 pixels = list(imageMat.getdata()) #the content of images (list of tupels)
 print bin(pixels[30000][0]) + "  "  + bin(pixels[30000][1]) + "  "+ bin(pixels[30000][2]) #checking before
 imageHidden =  mergeData(pixels,[1, 1, 1],2) #call the function that merges the data 
 print bin(pixels[30000][0]) + "  "  + bin(pixels[30000][1]) + "  "+ bin(pixels[30000][2]) #checking after 
+imageData = getData(imageHidden,2)
+print imageData
 
