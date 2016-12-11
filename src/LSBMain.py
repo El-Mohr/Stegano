@@ -2,7 +2,7 @@ import os,sys
 import Image
 import numpy
 import math
-
+import subprocess
 
 def divideData(image,rawData,numberBits):
 	if(numberBits > 8):
@@ -52,24 +52,32 @@ def getData(image,numberBits):
 
 
 ############Encoding message in image###############
+imageSrc = str(sys.argv[1]) #read arguments from terminal
+
 stMsg = "hello world"
-for i in range(200000) :
-	stMsg = stMsg + 'x'
+#for i in range(200000) :
+#	stMsg = stMsg + 'x'
 #print stMsg
 inputData=''
 for x in stMsg:
 	inputData=inputData+format(ord(x), 'b').zfill(8)
 
-imageMat = Image.open("./../samples/sample1.png") #read the image, 8 bit per pixel
+if(imageSrc == "Camera"):
+	os.system("ffmpeg -y -f video4linux2 -s 640x480 -i /dev/video0 -loglevel quiet  -ss 0:0:0.1 -frames 1  ./../samples/sample1.png")  
+	imageMat = Image.open("./../samples/sample1.png") #read the image, 8 bit per pixel
+	print "Using Camera"
+else:
+	imageMat = Image.open("./../samples/sample1.png") #read the image, 8 bit per pixel
+	print "Using Sample"
+	
 pixels = list(imageMat.getdata()) #the content of images (list of tupels)
 
-blockedData=divideData(pixels,inputData,2)
+blockedData=divideData(pixels,inputData,2)#data is divided to number of block for each image 
 for div in range(len(blockedData)):
 	imageHidden =  hideData(pixels,blockedData[div],2) #call the function that merges the data
 	image_out = Image.new(imageMat.mode,imageMat.size)
 	image_out.putdata(imageHidden)
 	image_out.save('../outputs/out%d.png' % div)
-
 
 
 
@@ -81,5 +89,8 @@ imageData = getData(modPixels,2)
 msg=''
 for bit in range(0,len(imageData),8):
 	msg = msg + chr(int(imageData[bit:bit+8], 2))
-
-print msg
+	
+#Display output
+print "The message was : " +  msg
+p = subprocess.Popen(["display" , "./../outputs/out0.png"])
+p = subprocess.Popen(["display" , "./../samples/sample1.png"])
