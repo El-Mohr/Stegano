@@ -43,7 +43,7 @@ def mergeData(image,data,numberBits):
 
 
 def getData(image,numberBits):
-	allData = [0]
+	allData = []
 	for index in range(0,len(image)):
 		tempPixel = list(image[index]) 
 		allData.append(tempPixel[0] & ~(0xFF << numberBits))
@@ -57,8 +57,15 @@ pixels = list(imageMat.getdata()) #the content of images (list of tupels)
 inputData=b'0000000011111111000000001111111100000000' #Should be driven from a string to binay function
 blockedData=divideData(pixels,inputData,2)
 print bin(pixels[0][0]) + "  "  + bin(pixels[0][1]) + "  "+ bin(pixels[0][2]) #checking before
-imageHidden =  mergeData(pixels,blockedData[0],2) #call the function that merges the data 
-print bin(pixels[0][0]) + "  "  + bin(pixels[0][1]) + "  "+ bin(pixels[0][2]) #checking after 
-imageData = getData(imageHidden,2)
-#print imageData
+imageHidden =  mergeData(pixels,blockedData[0],2) #call the function that merges the data , Should be iterated if data is large
+
+image_out = Image.new(imageMat.mode,imageMat.size)
+image_out.putdata(imageHidden)
+image_out.save('../outputs/out1.png')
+
+modImageMat = Image.open("./../outputs/out1.png") #read the image, 8 bit per pixel
+modPixels = list(modImageMat.getdata()) #the content of images (list of tupels)
+print bin(modPixels[0][0]) + "  "  + bin(modPixels[0][1]) + "  "+ bin(modPixels[0][2]) #checking after 
+imageData = getData(modPixels,2)
+print imageData
 
