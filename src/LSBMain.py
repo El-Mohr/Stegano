@@ -2,6 +2,8 @@ import os,sys
 import Image
 import numpy
 import math
+#import binascii
+#import bitarray
 
 
 def divideData(image,rawData,numberBits):
@@ -54,7 +56,12 @@ def getData(image,numberBits):
 
 imageMat = Image.open("./../samples/sample1.png") #read the image, 8 bit per pixel
 pixels = list(imageMat.getdata()) #the content of images (list of tupels)
-inputData=b'0000000011111111000000001111111100000000' #Should be driven from a string to binay function
+
+stMsg = "hello world"
+inputData=''
+for x in stMsg:
+	inputData=inputData+format(ord(x), 'b')
+
 blockedData=divideData(pixels,inputData,2)
 print bin(pixels[0][0]) + "  "  + bin(pixels[0][1]) + "  "+ bin(pixels[0][2]) #checking before
 imageHidden =  mergeData(pixels,blockedData[0],2) #call the function that merges the data , Should be iterated if data is large
@@ -67,5 +74,5 @@ modImageMat = Image.open("./../outputs/out1.png") #read the image, 8 bit per pix
 modPixels = list(modImageMat.getdata()) #the content of images (list of tupels)
 print bin(modPixels[0][0]) + "  "  + bin(modPixels[0][1]) + "  "+ bin(modPixels[0][2]) #checking after 
 imageData = getData(modPixels,2)
-print imageData
+#print imageData
 
