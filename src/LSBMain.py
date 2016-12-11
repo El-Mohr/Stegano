@@ -1,5 +1,5 @@
 import os,sys
-import Image
+from PIL import Image
 import numpy
 import math
 import subprocess
@@ -63,7 +63,7 @@ for x in stMsg:
 	inputData=inputData+format(ord(x), 'b').zfill(8)
 
 if(imageSrc == "Camera"):
-	os.system("ffmpeg -y -f video4linux2 -s 640x480 -i /dev/video0 -loglevel quiet  -ss 0:0:0.1 -frames 1  ./../samples/sample1.png")  
+	os.system("avconv -y -f video4linux2 -s 640x480 -i /dev/video0 -loglevel quiet  -ss 0:0:0.1 -frames 1  ./../samples/sample1.png")  
 	imageMat = Image.open("./../samples/sample1.png") #read the image, 8 bit per pixel
 	print "Using Camera"
 else:
@@ -92,5 +92,5 @@ for bit in range(0,len(imageData),8):
 	
 #Display output
 print "The message was : " +  msg
-p = subprocess.Popen(["display" , "./../outputs/out0.png"])
-p = subprocess.Popen(["display" , "./../samples/sample1.png"])
+#p = subprocess.Popen(["display" , "./../outputs/out0.png"])
+#p = subprocess.Popen(["display" , "./../samples/sample1.png"])
