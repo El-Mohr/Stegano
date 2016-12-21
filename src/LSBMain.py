@@ -3,24 +3,28 @@ from PIL import Image
 import numpy
 import math
 import subprocess
+import datetime
 
 def divideData(image,rawData,numberBits):
 	if(numberBits > 8):
 		print "Error: Number of bits should not be larger than 8"
 	div = int(math.ceil(len(rawData) / (len(image)*numberBits*3.0)))
-	blockedData = [[[0 for x in range(3)] for y in range(len(image))] for z in range(div)] 
+	blockedData = [[[b'0' for x in range(3)] for y in range(len(image))] for z in range(div)] 
 	i=0	
 	for index in range(div):
 		for pixel in range(len(image)):
 			for color in range(3):
-				tempData=b''
-				for bit in range(numberBits):
-					if(i<len(rawData)):
-						tempData = tempData + rawData[i]
-					else:
-						tempData = tempData + b'0'
-					i= i + 1
-				blockedData[index][pixel][color] = tempData	
+				if(i<len(rawData)):
+					tempData=b''
+					for bit in range(numberBits):
+						if(i<len(rawData)):
+							tempData = tempData + rawData[i]
+						else:
+							tempData = tempData + b'0'
+						i= i + 1
+					blockedData[index][pixel][color] = tempData
+				else:	
+					return blockedData	
 	return blockedData
 	
 
@@ -42,11 +46,10 @@ def getData(image,numberBits):
 	allData = ''
 	for index in range(0,len(image)):
 		tempPixel = list(image[index]) 
-		allData=allData+(format(int(tempPixel[0] & ~(0xFF << numberBits)), 'b').zfill(numberBits))
-		allData=allData+(format(int(tempPixel[1] & ~(0xFF << numberBits)), 'b').zfill(numberBits))
-		allData=allData+(format(int(tempPixel[2] & ~(0xFF << numberBits)), 'b').zfill(numberBits))
+		allData=allData+(format(int(tempPixel[0] & ~(0xFF << numberBits)), '0%db'%numberBits))
+		allData=allData+(format(int(tempPixel[1] & ~(0xFF << numberBits)), '0%db'%numberBits))
+		allData=allData+(format(int(tempPixel[2] & ~(0xFF << numberBits)), '0%db'%numberBits))
 	return allData
-
 
 
 
@@ -54,13 +57,13 @@ def getData(image,numberBits):
 ############Encoding message in image###############
 imageSrc = str(sys.argv[1]) #read arguments from terminal
 
-stMsg = "hello world"
+stMsg = "hello world\n"
 #for i in range(200000) :
 #	stMsg = stMsg + 'x'
 #print stMsg
 inputData=''
 for x in stMsg:
-	inputData=inputData+format(ord(x), 'b').zfill(8)
+	inputData=inputData+format(ord(x), '08b')
 
 if(imageSrc == "Camera"):
 	os.system("avconv -y -f video4linux2 -s 640x480 -i /dev/video0 -loglevel quiet  -ss 0:0:0.1 -frames 1  ./../samples/sample1.png")  
@@ -73,6 +76,7 @@ else:
 pixels = list(imageMat.getdata()) #the content of images (list of tupels)
 
 blockedData=divideData(pixels,inputData,2)#data is divided to number of block for each image 
+
 for div in range(len(blockedData)):
 	imageHidden =  hideData(pixels,blockedData[div],2) #call the function that merges the data
 	image_out = Image.new(imageMat.mode,imageMat.size)
@@ -83,14 +87,18 @@ for div in range(len(blockedData)):
 
 ##########Decoding modified Image#############
 modImageMat = Image.open("./../outputs/out0.png") #read the image, 8 bit per pixel
-modPixels = list(modImageMat.getdata()) #the content of images (list of tupels)
+modPixels = list(modImageMat.getdata()) #the content of images (list of tupels)	
 imageData = getData(modPixels,2)
 
 msg=''
 for bit in range(0,len(imageData),8):
-	msg = msg + chr(int(imageData[bit:bit+8], 2))
+	if (chr(int(imageData[bit:bit+8], 2)) != '\n'):
+		msg = msg + chr(int(imageData[bit:bit+8], 2))
+	else:
+		break
 	
 #Display output
 print "The message was : " +  msg
+
 #p = subprocess.Popen(["display" , "./../outputs/out0.png"])
 #p = subprocess.Popen(["display" , "./../samples/sample1.png"])
